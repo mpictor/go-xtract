@@ -15,7 +15,12 @@ import (
 	"github.com/chriskirkland/go-xtract/pkg/util"
 )
 
-const stdoutSentinel = "<stdout>"
+const (
+	stdoutSentinel = "<stdout>"
+	compareHelp    = `Compare all json files in dir containing given file, verifying
+that all contain the keys this one contains. Only compares - run
+with -j first to create/update output file.`
+)
 
 var (
 	targetFunc = flag.String("func", "fmt.Sprintf", "target func")
@@ -24,6 +29,7 @@ var (
 	outputJson     = flag.Bool("j", false, "output json - ignores template")
 	outputFile     = flag.String("o", stdoutSentinel, "output file")
 	debug          = flag.Bool("v", false, "enable debug output")
+	compare        = flag.String("c", "", compareHelp)
 )
 
 func main() {
@@ -31,6 +37,11 @@ func main() {
 
 	if *debug {
 		log.SetOutput(os.Stdout)
+	}
+
+	if len(*compare) > 0 {
+		compareFiles(*compare)
+		return
 	}
 
 	dot := strings.LastIndex(*targetFunc, ".")
@@ -102,4 +113,48 @@ func main() {
 			log.Fatalf("failed to execute template: %s", err)
 		}
 	}
+}
+
+// Read all files in dir containing fname, verify that all have the keys in
+// that file. If other files are a superset of the given file, that is not
+// treated as an error.
+//
+// Not deterministic - if multiple keys are missing, reported key may
+// differ between runs. This is due to go's runtime map randomization.
+func compareFiles(fname string) {
+	if !strings.HasSuffix(fname, ".json") {
+		log.Fatal("-c: name must end with .json")
+	}
+	inmap := mapFile(fname)
+	if len(inmap) == 0 {
+		log.Fatalf("no k-v pairs read from file %s", fname)
+	}
+	//get all json files in that dir
+	dir := fp.Dir(fname)
+	files, _ := fp.Glob(fp.Join(dir, "*.json"))
+	for _, f := range files {
+		if f == fname {
+			continue
+		}
+		m := mapFile(f)
+		for k := range inmap {
+			_, ok := m[k]
+			if !ok {
+				log.Fatalf("file %s is missing key %s, which is present in %s", f, k, fname)
+			}
+		}
+	}
+}
+
+func mapFile(fname string) map[string]string {
+	f, err := ioutil.ReadFile(fname)
+	if err != nil {
+		log.Fatalf("error reading %s: %s", fname, err)
+	}
+	fmap := make(map[string]string)
+	err = json.Unmarshal(f, &fmap)
+	if err != nil {
+		log.Fatalf("json error in %s: %s", fname, err)
+	}
+	return fmap
 }
