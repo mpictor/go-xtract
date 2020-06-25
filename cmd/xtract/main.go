@@ -1,11 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
+	"fmt"
 	"html/template"
 	"io"
 	"log"
 	"os"
+	fp "path/filepath"
 	"strings"
 
 	"github.com/chriskirkland/go-xtract/pkg/extractor"
@@ -15,9 +18,10 @@ import (
 const stdoutSentinel = "<stdout>"
 
 var (
-	targetFunc = flag.String("func", "fmt.Sprintf", "taget func")
+	targetFunc = flag.String("func", "fmt.Sprintf", "target func")
 	//TODO(cmkirkla): fix character escaping in default template
 	outputTemplate = flag.String("template", "{{range .Strings}}{{print .}}\n{{end}}", "output template")
+	outputJson     = flag.Bool("j", false, "output json - ignores template")
 	outputFile     = flag.String("o", stdoutSentinel, "output file")
 	debug          = flag.Bool("v", false, "enable debug output")
 )
@@ -62,17 +66,40 @@ func main() {
 	}
 
 	// generate user output
-	t, err := template.New("output").Parse(*outputTemplate)
-	if err != nil {
-		log.Fatalf("failed to parse provided output template: %s", err)
-	}
+	if *outputJson {
+		vars := ext.Vars()
+		m := make(map[string]string)
+		for _, v := range vars {
+			if len(v.Vars) == 1 {
+				m[v.Vars[0]] = v.Val
+			} else {
+				//0 or multiple var names
+				log.Printf("val %q: vars %v", v.Val, v.Vars)
+				m[v.Val] = v.Val
+			}
+		}
+		out, err := json.Marshal(m)
+		if err != nil {
+			log.Fatal(err)
+		}
+		_, err = fmt.Fprint(writer, string(out))
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		//use template
+		t, err := template.New("output").Parse(*outputTemplate)
+		if err != nil {
+			log.Fatalf("failed to parse provided output template: %s", err)
+		}
 
-	log.Println("writing extracted strings")
-	if err := t.Execute(writer, struct {
-		Strings []string
-	}{
-		Strings: ext.Strings(),
-	}); err != nil {
-		log.Fatalf("failed to execute template: %s", err)
+		log.Println("writing extracted strings")
+		if err := t.Execute(writer, struct {
+			Strings []string
+		}{
+			Strings: ext.Strings(),
+		}); err != nil {
+			log.Fatalf("failed to execute template: %s", err)
+		}
 	}
 }
