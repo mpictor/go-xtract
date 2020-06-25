@@ -24,6 +24,7 @@ type Extractor interface {
 	Load(*ast.File, string)
 
 	Strings() []string
+	Vars() VarList
 }
 
 // New creates a new Extractor
@@ -44,6 +45,7 @@ func NewFromFunction(targetFunc interface{}) Extractor {
 func newExtractor() *extractor {
 	return &extractor{
 		strings:   make(map[string]bool),
+		vars:      make(map[string][]string),
 		imports:   make(map[string]string),
 		symbols:   make(map[string]string),
 		tfPackage: "fmt",
@@ -64,6 +66,8 @@ type extractor struct {
 
 	// extracted artifacts
 	strings map[string]bool
+	//map from str to names of vars containing it
+	vars map[string][]string
 }
 
 // Visit visit a node in the go file's AST
@@ -122,6 +126,7 @@ func (r *extractor) Visit(node ast.Node) ast.Visitor {
 				log.Printf("recorded new string: '%s'", value)
 				r.strings[value] = true
 			}
+			r.storeVarName(value, targetNode)
 		}
 
 		// stop traversing this branch of the tree
@@ -129,6 +134,30 @@ func (r *extractor) Visit(node ast.Node) ast.Visitor {
 	}
 
 	return r
+}
+
+func (r extractor) storeVarName(value string, targetNode ast.Expr) {
+	var varName string
+	switch v := targetNode.(type) {
+	case *ast.Ident:
+		varName = v.Name
+	case *ast.SelectorExpr:
+		varName = v.Sel.Name
+	default:
+		return
+	}
+	if len(varName) == 0 {
+		log.Printf("unable to determine varname for %q, %v", value, targetNode)
+		return
+	}
+	vals := r.vars[value]
+	for _, v := range vals {
+		if v == varName {
+			//duplicate
+			return
+		}
+	}
+	r.vars[value] = append(vals, varName)
 }
 
 func (r extractor) extractStringLiteral(node ast.Node) (value string, ok bool) {
@@ -255,6 +284,23 @@ func (r extractor) Strings() []string {
 		results = append(results, s)
 	}
 	return results
+}
+
+type ValVars struct {
+	Val  string
+	Vars []string
+}
+
+type VarList []ValVars
+
+func (r extractor) Vars() (list VarList) {
+	for val := range r.strings {
+		list = append(list, ValVars{
+			Val:  val,
+			Vars: r.vars[val],
+		})
+	}
+	return list
 }
 
 // resolve value of the given symbol in the provided package. must be declared in a 'const' or 'var' block.
