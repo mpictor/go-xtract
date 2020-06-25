@@ -52,7 +52,7 @@ func main() {
 
 	var writer io.Writer = os.Stdout
 	if *outputFile != stdoutSentinel {
-		f, err := os.Open(*outputFile)
+		f, err := os.Create(*outputFile)
 		if err != nil {
 			log.Fatalf("output file '%s' not found: %s", *outputFile, err)
 		}
