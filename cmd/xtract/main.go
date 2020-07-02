@@ -1,11 +1,13 @@
 package main
 
 import (
+	"crypto/sha1"
+	"encoding/base64"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"html/template"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	fp "path/filepath"
@@ -78,25 +80,7 @@ func main() {
 
 	// generate user output
 	if *outputJson {
-		vars := ext.Vars()
-		m := make(map[string]string)
-		for _, v := range vars {
-			if len(v.Vars) == 1 {
-				m[v.Vars[0]] = v.Val
-			} else {
-				//0 or multiple var names
-				log.Printf("val %q: vars %v", v.Val, v.Vars)
-				m[v.Val] = v.Val
-			}
-		}
-		out, err := json.Marshal(m)
-		if err != nil {
-			log.Fatal(err)
-		}
-		_, err = fmt.Fprint(writer, string(out))
-		if err != nil {
-			log.Fatal(err)
-		}
+		jsonOut(ext, writer)
 	} else {
 		//use template
 		t, err := template.New("output").Parse(*outputTemplate)
@@ -146,6 +130,7 @@ func compareFiles(fname string) {
 	}
 }
 
+//reads from a json file into a map
 func mapFile(fname string) map[string]string {
 	f, err := ioutil.ReadFile(fname)
 	if err != nil {
@@ -157,4 +142,40 @@ func mapFile(fname string) map[string]string {
 		log.Fatalf("json error in %s: %s", fname, err)
 	}
 	return fmap
+}
+
+func jsonOut(ext extractor.Extractor, writer io.Writer) {
+	vars := ext.Vars()
+	m := make(map[string]string)
+	for _, v := range vars {
+		if len(v.Vars) == 1 {
+			m[v.Vars[0]] = v.Val
+		} else {
+			//0 or multiple var names - use a sanitized copy of val as key
+			sanitize := func(r rune) rune {
+				//replace all but letters with underscores
+				switch {
+				case r < 65, r > 122, r > 90 && r < 97:
+					return '_'
+				default:
+					return r
+				}
+			}
+			k := strings.Map(sanitize, v.Val)
+			if len(k) > 40 {
+				sha := sha1.Sum([]byte(v.Val))
+				enc := base64.RawStdEncoding.EncodeToString(sha[:])
+				if len(enc) > 10 {
+					enc = enc[:10]
+				}
+				k = k[:40-len(enc)] + string(enc)
+			}
+			log.Printf("val %q: vars %v - using %s as key", v.Val, v.Vars, k)
+			m[k] = v.Val
+		}
+	}
+	err := util.NewJSONEncoder(writer).Encode(m)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
