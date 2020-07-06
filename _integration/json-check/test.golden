@@ -1,0 +1,2 @@
+cmd: 'xtract -c data/en-us.json'
+output: # no output

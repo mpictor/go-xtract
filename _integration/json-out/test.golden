@@ -1,0 +1,7 @@
+cmd: 'xtract -func github.com/chriskirkland/go-xtract/_integration/json-out/src/pkg.Fn -j src/*.go'
+output: |
+    {
+      "SomeStr": "var SomeStr in package pkg",
+      "some_very_very_long_string_bla32lWtu/UM2": "some very very long string blah blah blah blah blah blah blah blah blah blah blah blah",
+      "string_passed_to_function_in_nested_pkg": "string passed to function in nested pkg"
+    }

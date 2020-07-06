@@ -1,0 +1,5 @@
+{
+  "SomeStr": "var in package pkg SomeStr",
+  "some_very_very_long_string_bla32lWtu/UM2": "yawn",
+  "will-fail": "missing a key present in en-us",
+}

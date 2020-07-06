@@ -1,0 +1,3 @@
+cmd: 'xtract -c data/en-us.json'
+output: # no output
+should_fail: true

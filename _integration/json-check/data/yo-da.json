@@ -1,0 +1,6 @@
+{
+  "SomeStr": "var in package pkg SomeStr",
+  "some_very_very_long_string_bla32lWtu/UM2": "Mmm. Boring repetition.",
+  "string_passed_to_function_in_nested_pkg": "string passed in nested pkg to function",
+  "extra-str": "ok are keys listed not in primary file en-us"
+}
