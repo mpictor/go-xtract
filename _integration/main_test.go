@@ -15,8 +15,9 @@ import (
 )
 
 type spec struct {
-	Command string `yaml:"cmd"`
-	Output  string `yaml:"output"`
+	Command    string `yaml:"cmd"`
+	Output     string `yaml:"output"`
+	ShouldFail bool   `yaml:"should_fail"`
 }
 
 func TestE2E(t *testing.T) {
@@ -80,7 +81,11 @@ func (r *testRunner) runCommand() string {
 	cmd.Dir = r.testName
 
 	err := cmd.Run()
-	require.NoError(r.t, err, "command failed: '%s %s'", first, strings.Join(rest, " "))
+	if r.testSpec.ShouldFail {
+		require.Error(r.t, err, "command must fail: '%s %s'", first, strings.Join(rest, " "))
+	} else {
+		require.NoError(r.t, err, "command failed: '%s %s'", first, strings.Join(rest, " "))
+	}
 	return output.String()
 }
 
