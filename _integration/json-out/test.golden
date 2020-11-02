@@ -1,4 +1,4 @@
-cmd: 'xtract -func github.com/chriskirkland/go-xtract/_integration/json-out/src/pkg.Fn -j src/*.go'
+cmd: 'xtract -func github.com/mpictor/go-xtract/_integration/json-out/src/pkg.Fn -j src/*.go'
 output: |
     {
       "SomeStr": "var SomeStr in package pkg",

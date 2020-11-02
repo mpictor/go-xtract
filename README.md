@@ -8,7 +8,7 @@ Library for extracting arbitrary strings from Go code.
 
 ### Installing the CLI
 ```
-go install github.com/chriskirkland/go-xtract/cmd/xtract
+go install github.com/mpictor/go-xtract/cmd/xtract
 ```
 
 ### Examples:

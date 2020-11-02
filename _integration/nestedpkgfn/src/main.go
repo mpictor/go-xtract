@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/chriskirkland/go-xtract/_integration/nestedpkgfn/src/pkg"
+	"github.com/mpictor/go-xtract/_integration/nestedpkgfn/src/pkg"
 )
 
 func main() {

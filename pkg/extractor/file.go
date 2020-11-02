@@ -4,7 +4,7 @@ import (
 	"go/ast"
 	"log"
 
-	"github.com/chriskirkland/go-xtract/pkg/util"
+	"github.com/mpictor/go-xtract/pkg/util"
 )
 
 // ProcessFiles process each file with the provided Extractor

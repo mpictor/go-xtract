@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/chriskirkland/go-xtract/_integration/json-out/src/pkg"
+	"github.com/mpictor/go-xtract/_integration/json-out/src/pkg"
 )
 
 func main() {

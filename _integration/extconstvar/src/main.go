@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/chriskirkland/go-xtract/_integration/extconstvar/src/pkg"
+	"github.com/mpictor/go-xtract/_integration/extconstvar/src/pkg"
 )
 
 const (

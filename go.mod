@@ -1,4 +1,4 @@
-module github.com/chriskirkland/go-xtract
+module github.com/mpictor/go-xtract
 
 go 1.12
 

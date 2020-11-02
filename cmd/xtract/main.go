@@ -13,8 +13,8 @@ import (
 	fp "path/filepath"
 	"strings"
 
-	"github.com/chriskirkland/go-xtract/pkg/extractor"
-	"github.com/chriskirkland/go-xtract/pkg/util"
+	"github.com/mpictor/go-xtract/pkg/extractor"
+	"github.com/mpictor/go-xtract/pkg/util"
 )
 
 const (

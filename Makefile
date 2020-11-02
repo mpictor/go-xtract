@@ -8,7 +8,7 @@ lintall: fmt lint
 
 .PHONY: install
 install:
-	go install github.com/chriskirkland/go-xtract/cmd/xtract
+	go install github.com/mpictor/go-xtract/cmd/xtract
 
 .PHONY: fmt
 fmt: deps
