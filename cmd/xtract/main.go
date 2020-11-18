@@ -57,11 +57,14 @@ func main() {
 	if flag.NArg() == 0 {
 		log.Fatalf("one or more file patterns must be provided")
 	}
-	globs := flag.Args()
+	globs := fixupGlobs()
 
 	files, err := util.FilesFromPatterns(globs...)
 	if err != nil {
 		log.Fatalf("error resolving one more provide file pattern: %s", err.Error())
+	}
+	if len(files) == 0 {
+		log.Fatalf("found 0 files in globs %v", globs)
 	}
 
 	ext := extractor.New(tfPackage, tfName)
@@ -178,4 +181,22 @@ func jsonOut(ext extractor.Extractor, writer io.Writer) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+//get globs; if any are not absolute, fix.
+func fixupGlobs() []string {
+	globs := flag.Args()
+	sep := string(os.PathSeparator)
+	wd, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("getting working dir: %s", err)
+	}
+	wd += sep
+	for i := range globs {
+		if !strings.HasPrefix(globs[i], sep) {
+			log.Printf("fix glob %s add %s", globs[i], wd)
+			globs[i] = wd + globs[i]
+		}
+	}
+	return globs
 }
