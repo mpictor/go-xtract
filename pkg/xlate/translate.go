@@ -4,8 +4,14 @@ import (
 	"log"
 )
 
-//look up translations
+// T looks up a translation. Input is in the primary language, while output is
+// in the current language. If no match is found, a warning is logged and the
+// string passes through as-is.
 func T(in string) string {
+	if translations == nil {
+		log.Printf("T(%s) called before xlate.Setup() - translation impossible", in)
+		return in
+	}
 	if curLang == defaultLanguage {
 		return in
 	}
