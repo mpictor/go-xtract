@@ -25,7 +25,7 @@ with -j first to create/update output file.`
 )
 
 var (
-	targetFunc = flag.String("func", "fmt.Sprintf", "target func")
+	targetFunc = flag.String("func", "github.com/mpictor/go-xtract/pkg/xlate.T", "target func")
 	//TODO(cmkirkla): fix character escaping in default template
 	outputTemplate = flag.String("template", "{{range .Strings}}{{print .}}\n{{end}}", "output template")
 	outputJson     = flag.Bool("j", false, "output json - ignores template")
