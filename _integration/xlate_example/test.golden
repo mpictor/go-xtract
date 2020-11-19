@@ -1,0 +1,6 @@
+generate: true
+cmd: 'go run ./src -lingua all' 
+output: |
+    World, Hello!
+    Hello, World!
+    
