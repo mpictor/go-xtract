@@ -1,0 +1,8 @@
+# github.com/MichaelTJones/walk v0.0.0-20161122175330-4748e29d5718
+github.com/MichaelTJones/walk
+# github.com/mgutz/str v1.2.0
+github.com/mgutz/str
+# github.com/pkg/errors v0.8.1
+github.com/pkg/errors
+# gopkg.in/godo.v2 v2.0.9
+gopkg.in/godo.v2/glob
