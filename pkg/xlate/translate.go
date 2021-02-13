@@ -8,11 +8,11 @@ import (
 // in the current language. If no match is found, a warning is logged and the
 // string passes through as-is.
 func T(in string) string {
-	if translations == nil {
-		log.Printf("T(%s) called before xlate.Setup() - translation impossible", in)
+	if curLang == defaultLanguage {
 		return in
 	}
-	if curLang == defaultLanguage {
+	if translations == nil {
+		log.Printf("T(%s) called before xlate.SetLanguage - translation impossible", in)
 		return in
 	}
 	out, ok := translations[in]
