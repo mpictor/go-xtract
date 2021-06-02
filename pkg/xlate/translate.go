@@ -1,6 +1,7 @@
 package xlate
 
 import (
+	"fmt"
 	"log"
 )
 
@@ -8,18 +9,25 @@ import (
 // in the current language. If no match is found, a warning is logged and the
 // string passes through as-is.
 func T(in string) string {
+	out, err := TErr(in)
+	if err != nil {
+		log.Print(err)
+	}
+	return out
+}
+
+//Like T, but returns an error rather than logging.
+func TErr(in string) (string, error) {
 	if curLang == defaultLanguage {
-		return in
+		return in, nil
 	}
 	if translations == nil {
-		log.Printf("T(%s) called before xlate.SetLanguage - translation impossible", in)
-		return in
+		return in, fmt.Errorf("T(%s) called before xlate.SetLanguage - translation impossible", in)
 	}
 	out, ok := translations[in]
 	if ok {
-		return out
+		return out, nil
 	}
 	//shouldn't get here, but just in case...
-	log.Printf("T(%q): missing translation to %s", in, curLang)
-	return in
+	return in, fmt.Errorf("T(%q): missing translation to %s", in, curLang)
 }
