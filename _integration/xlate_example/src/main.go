@@ -27,7 +27,7 @@ func main() {
 		//for demonstration purposes, print message in all languages
 
 		//these languages come from a map, so order is not guaranteed
-		sort.Strings(xlate.AvailableLanguages)
+		sort.Sort(xlate.AvailableLanguages)
 		for _, l := range xlate.AvailableLanguages {
 			doSomething(l)
 		}
