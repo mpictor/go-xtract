@@ -42,10 +42,10 @@ var (
 	//maps from phrase in primary language to current
 	translations map[string]string
 
-	ErrNotFound       = errors.New("Lang asset not found")
-	ErrMultiSetup     = errors.New("Setup called multiple times")
-	ErrDefLangAbsent  = errors.New("Default language not loaded")
-	ErrLangNameAbsent = errors.New("Missing key AA_NativeLangName")
+	ErrNotFound       = errors.New("lang asset not found")
+	ErrMultiSetup     = errors.New("setup called multiple times")
+	ErrDefLangAbsent  = errors.New("default language not loaded")
+	ErrLangNameAbsent = errors.New("missing key AA_NativeLangName")
 )
 
 func (l Linguas) Len() int           { return len(l) }
@@ -117,7 +117,7 @@ func (l Locale) FuzzyMatch(set []Locale) Locale {
 // this map to find the correct phrase to return.
 func SetLanguage(lang Lingua) (err error) {
 	if langAssetMap == nil {
-		return fmt.Errorf("Must call xlate.Setup() first. %s: %w", lang, ErrNotFound)
+		return fmt.Errorf("must call xlate.Setup() first. %s: %w", lang, ErrNotFound)
 	}
 	log.Printf("Setting language to %s", lang)
 	_, ok := langAssetMap[lang]
