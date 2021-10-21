@@ -12,6 +12,9 @@ An aid for translations.
 This is a fork of github.com/chriskirkland/go-xtract, with additions to make it work in my translation workflow. Original description:
 Library for extracting arbitrary strings from Go code.
 
+### License
+
+I see no references to copyright or license in the upstream repo. I am choosing to interpret this as "at least as permissive as BSD", and licensing my contributions under BSD 3-clause. Chris, if you have any issues with this, please reach out.
 
 ## Usage
 
