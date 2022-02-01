@@ -1,7 +1,10 @@
 // Package xlate translates strings from one language to another, using data
 // injected via the Setup function. The injected data is a map, as generated
-// by go-bindata. Map keys are asset names, such as en-us.json, while values
-// are func()([]byte,error). The []byte is json from cmd/xtract.
+// by go-bindata. We support two binary data generators:
+// - github.com/jteeuwen/go-bindata (archived, not supported any more)
+// - github.com/go-bindata/go-bindata.
+// In either case, map keys are asset names, such as en-us.json, while values
+// are asset access functions. The asset value (payload) is json from cmd/xtract.
 //
 // This package assumes there are no duplicate strings in the primary language.
 // If two strings are the same in the primary language but differ in another,
