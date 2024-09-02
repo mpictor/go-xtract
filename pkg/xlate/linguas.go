@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"reflect"
 	"strings"
+	"unsafe"
 )
 
 type (
@@ -177,7 +179,9 @@ func GetLocales() []Locale {
 	return locs
 }
 
-// Bindata matches the type used for go-bindata assets.
+// Bindata matches the type used for github.com/jteeuwen/go-bindata assets.
+// If you need to use github.com/go-bindata/go-bindata output, please, use
+// AdoptBindata() wrapping function.
 type Bindata map[string]func() ([]byte, error)
 
 var bindata Bindata
@@ -222,6 +226,92 @@ func Setup(defaultLang Lingua, bdata Bindata) error {
 	}
 	loaded = true
 	return nil
+}
+
+// AdoptBindata assesses the type of binary data argument and tries to convert to the Bindata instance.
+// The main use-case for this function is adoption of github.com/go-bindata/go-bindata generator
+// output to the "original" format, employed by its predecessor - github.com/jteeuwen/go-bindata.
+//
+// Note: AdoptBindata() function calls are relatively expensive (it intensively uses reflect/unsafe
+// functionality to assess input data type at run-time). For the most cases, when binary data generator
+// output source files belong to the caller's package, it would be much easier to use conversion
+// like:
+//  xbd := xlate.Bindata{}
+//  for k, v := range _bindata {
+//      f := v
+//      xbd[k] = func() ([]byte, error) {
+//          a_, e_ := f()
+//          if a_ == nil || e_ != nil {
+//              return nil, e_
+//          }
+//          return a_.bytes, nil
+//      }
+//  }
+func AdoptBindata(bd interface{}) (Bindata, error) {
+	switch b := bd.(type) {
+	case Bindata:
+		return b, nil
+	case map[string]func() ([]byte, error):
+		return b, nil
+	}
+
+	//fine, we were given something incompatible with our Bindata.
+	//we expect that would be go-bindata asset map. let's verify that.
+	bdType := reflect.TypeOf(bd)
+	/*
+		map[string]func() (*asset, error)
+	*/
+	if bdType.Kind() != reflect.Map || bdType.Key().Kind() != reflect.String {
+		return nil, errors.New("not a string map")
+	}
+	bdFnType := bdType.Elem()
+	/*
+		func() (*asset, error)
+	*/
+	if bdFnType.Kind() != reflect.Func || bdFnType.NumIn() != 0 || bdFnType.NumOut() != 2 {
+		return nil, errors.New("not a string map to 'func()(?, ?)'")
+	}
+	if !bdFnType.Out(1).Implements(reflect.TypeOf((*error)(nil)).Elem()) {
+		return nil, errors.New("not a string map to 'func()(?, error)'")
+	}
+	bdAssetType := bdFnType.Out(0)
+	if bdAssetType.Kind() != reflect.Ptr {
+		return nil, errors.New("not a string map to 'func()(&?, error)'")
+	}
+	bdAssetType = bdAssetType.Elem()
+	/*
+		type asset struct {
+			bytes []byte
+			info  os.FileInfo
+		}
+	*/
+	if bdAssetType.Kind() != reflect.Struct {
+		return nil, errors.New("not a string map to 'func()(&struct{?}, error)'")
+	}
+	bdAssetField0Type := bdAssetType.Field(0).Type
+	if bdAssetField0Type.Kind() != reflect.Slice {
+		return nil, errors.New("not a string map to 'func()(&struct{[]?;...}, error)'")
+	}
+	if bdAssetField0Type.Elem() != reflect.TypeOf([]byte(nil)).Elem() {
+		return nil, errors.New("not a string map to 'func()(&struct{[]byte;...}, error)'")
+	}
+	// we don't care about the rest fields of the asset structure since we aren't going to access them
+
+	bdIter := reflect.ValueOf(bd).MapRange()
+	rv := Bindata{}
+	for bdIter.Next() {
+		k := bdIter.Key().String()
+		v := bdIter.Value()
+		rv[k] = func() ([]byte, error) {
+			outs := v.Call([]reflect.Value{})
+			e, _ := outs[1].Interface().(error)
+			if p := unsafe.Pointer(outs[0].Pointer()); p != unsafe.Pointer(nil) {
+				return *(*[]byte)(p), e
+			}
+			return nil, e
+		}
+	}
+	return rv, nil
 }
 
 // looks for AA_NativeLangName in json, returns if present
